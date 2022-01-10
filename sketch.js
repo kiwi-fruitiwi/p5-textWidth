@@ -7,9 +7,10 @@
 coding plan 🔧
     ☒ black background, white text
     ☒ write characters 'i' and 'm' on screen
-    ☐ make things work with get()
-    ☐ measure each one's width by checking pixels in order
+    ☒ make things work with get()
+    ☒ measure each one's width by checking pixels in order
     ☐ check measurements across various font sizes, including consolas
+    ☐ encapsulate function
     ☐ now use charWidth to make textWidth. possible exception for gigamaru ' '
     ☐ convert to pGraphics object: off-screen buffer
     ☐ transfer to p5-dialogsystem
@@ -25,24 +26,28 @@ function preload() {
 }
 
 function setup() {
-    createCanvas(25, 40)
+    createCanvas(640, 360)
     colorMode(HSB, 360, 100, 100, 100)
     textFont(font, 30)
 
     // FIXME neither textAscent nor textDescent work for gigamarujr.ttf
 
-    background(0, 0, 0)
-    fill(0, 0, 100)
-    text('5', 0, 30)
 
+    background(234, 34, 24)
+    fill(0, 0, 100)
+
+    /*
+    text('5', 0, 30)
     loadPixels()
     let pd = pixelDensity()
     let offset
     let max_x = 0
+    */
 
     /*  use the .get() equivalent for pixels[] found at
      *  https://p5js.org/reference/#/p5/get to find the text width
      */
+    /*
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < height; y++) {
             offset = (y * width + x) * pd * 4
@@ -54,6 +59,68 @@ function setup() {
     }
 
     print(max_x)
+
+    */
+    print(charWidth('a'))
+    print(charWidth('1'))
+    print(charWidth('i'))
+    print(charWidth('m'))
+    print(charWidth('ρ'))
+}
+
+/* return the width in pixels of char */
+function charWidth(char) {
+    let g = createGraphics(30, 50)
+    g.colorMode(HSB, 360, 100, 100, 100)
+    g.textFont(font, 30)
+
+    g.background(0, 0, 0)
+    g.fill(0, 0, 100)
+    g.text(char, 0, 33)
+
+    g.loadPixels()
+
+    // 🔧 we can't use pixels[]. it's g.pixels after g.loadPixels!!
+    let pd = g.pixelDensity()
+
+    let offset
+    let max_x = 0
+
+    /*  use the .get() equivalent for pixels[] found at
+     *  https://p5js.org/reference/#/p5/get to find the text width
+     */
+    let c, redFail, greenFail, blueFail, alphaFail
+    for (let x = 0; x < g.width; x++) {
+        for (let y = 0; y < g.height; y++) {
+            offset = (y * g.width + x) * pd * 4
+
+            /*
+            c = g.get(x, y)
+            if (!(c[0]===0 && c[1]===0 && c[2]===0 && c[3]===255)) {
+                max_x = Math.max(x, max_x)
+            }
+            */
+
+            // pixel values are rgba in the format [r, g, b, a]
+            redFail = (offset % 4 === 0 && g.pixels[offset] !==0)
+            greenFail = (offset % 4 === 1 && g.pixels[offset] !==0)
+            blueFail = (offset % 4 === 2 && g.pixels[offset] !==0)
+            alphaFail = (offset % 4 === 3 && g.pixels[offset] !==255)
+
+            if (redFail || greenFail || blueFail || alphaFail) {
+                max_x = Math.max(x, max_x)
+            }
+
+            /*
+            if (pixels[offset] !== 0) { // 🔧 because alpha=255 for black! D:
+                // FIXME skip alpha values, or mandate 0,1,2=0, 3=255 somehow?
+                max_x = Math.max(x, max_x)
+            }*/
+        }
+    }
+
+    image(g, width/2, height/2)
+    return max_x
 }
 
 function getPixel(x, y, pixelDensity) {
