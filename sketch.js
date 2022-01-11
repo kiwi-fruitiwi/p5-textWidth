@@ -9,8 +9,9 @@
  ☒ write characters 'i' and 'm' on screen
  ☒ make things work with get()
  ☒ measure each one's width by checking pixels in order
- ☐ check measurements across various font sizes, including consolas
- ☐ encapsulate functions: one using .get, one using pixels
+    ☐ check measurements across various font sizes, including consolas
+ ☒ encapsulate functions: one using .get, one using pixels
+ ☐ use charWidth to display words
  ☐ now use charWidth to make textWidth. possible exception for gigamaru ' '
  ☐ convert to pGraphics object: off-screen buffer
  ☐ transfer to p5-dialogsystem
@@ -20,65 +21,71 @@ let font
 let debug
 
 function preload() {
-    // font = loadFont('data/giga.ttf')
-    font = loadFont("data/giga.ttf")
+    font = loadFont('data/giga.ttf')
+    // font = loadFont("data/meiryo.ttf")
 
 }
 
 function setup() {
     createCanvas(640, 360)
     colorMode(HSB, 360, 100, 100, 100)
-    textFont(font, 30)
-
-    // FIXME neither textAscent nor textDescent work for gigamarujr.ttf
-
+    textFont(font, 18)
 
     background(234, 34, 24)
     fill(0, 0, 100)
+    noStroke()
 
-    /*
-     text('5', 0, 30)
-     loadPixels()
-     let pd = pixelDensity()
-     let offset
-     let max_x = 0
-     */
 
-    /*  use the .get() equivalent for pixels[] found at
-     *  https://p5js.org/reference/#/p5/get to find the text width
-     */
-    /*
-     for (let x = 0; x < width; x++) {
-     for (let y = 0; y < height; y++) {
-     offset = (y * width + x) * pd * 4
+// TODO use charWidth to display characters first
+    let cursor = new p5.Vector(0, 100)
+    let input = "I couldn't even get one pixel working because my generatePixel function didn't work. I need four nested loops to be able to complete my task because I don't know how to do this otherwise. It seems like I'm loading just fine."
 
-     if (pixels[offset] !== 0) {
-     max_x = Math.max(x, max_x)
-     }
-     }
-     }
+    let charWidth = 0
+    for (let c of input) {
+        if (c === ' ') {
+            cursor.x += 10
+        } else {
+            charWidth = charWidth_pixels(c)
+            text(c, cursor.x, cursor.y)
+            circle(cursor.x, cursor.y+4, 2)
 
-     print(max_x)
+            cursor.x += charWidth+2
+            line(cursor.x, 0, cursor.x, height)
 
-     */
-    print(charWidth_get('a'))
-    print(charWidth_get('1'))
-    print(charWidth_get('i'))
-    print(charWidth_get('m'))
-    print(charWidth_get('ρ'))
+            // print(c)
+            print(charWidth)
+            // print(cursor.x)
+        }
+    }
+
+    print(charWidth_pixels('o'))
+    print(charWidth_pixels('m'))
+    print(charWidth_pixels('g'))
 }
+
+
+function draw() {
+}
+
+
+/*
+
+TODO Use charWidth to make textWidth
+
+
+ */
 
 
 /*  return the width in pixels of char using the pixels array
  */
 function charWidth_pixels(char) {
-    let g = createGraphics(30, 50)
+    let g = createGraphics(14, 100)
     g.colorMode(HSB, 360, 100, 100, 100)
-    g.textFont(font, 30)
+    g.textFont(font, 18)
 
     g.background(0, 0, 0)
     g.fill(0, 0, 100)
-    g.text(char, 0, 33)
+    g.text(char, 0, 15)
 
     g.loadPixels()
 
@@ -111,7 +118,7 @@ function charWidth_pixels(char) {
         }
     }
 
-    // image(g, width/2, height/2)
+    image(g, width/2, height/2)
     return max_x
 }
 
@@ -161,10 +168,6 @@ function getPixel(x, y, pixelDensity) {
         pixels[off + 2],
         pixels[off + 3]
     ]
-}
-
-function draw() {
-
 }
 
 function debugLog(text) {
