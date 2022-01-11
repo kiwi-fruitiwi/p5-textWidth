@@ -1,19 +1,19 @@
+//
 
 /*
+ @author Kiwi
+ @date 2022-01-10
 
-@author Kiwi
-@date 2022-01-10
-
-coding plan 🔧
-    ☒ black background, white text
-    ☒ write characters 'i' and 'm' on screen
-    ☒ make things work with get()
-    ☒ measure each one's width by checking pixels in order
-    ☐ check measurements across various font sizes, including consolas
-    ☐ encapsulate function
-    ☐ now use charWidth to make textWidth. possible exception for gigamaru ' '
-    ☐ convert to pGraphics object: off-screen buffer
-    ☐ transfer to p5-dialogsystem
+ coding plan 🔧
+ ☒ black background, white text
+ ☒ write characters 'i' and 'm' on screen
+ ☒ make things work with get()
+ ☒ measure each one's width by checking pixels in order
+ ☐ check measurements across various font sizes, including consolas
+ ☐ encapsulate functions: one using .get, one using pixels
+ ☐ now use charWidth to make textWidth. possible exception for gigamaru ' '
+ ☐ convert to pGraphics object: off-screen buffer
+ ☐ transfer to p5-dialogsystem
  */
 
 let font
@@ -37,39 +37,41 @@ function setup() {
     fill(0, 0, 100)
 
     /*
-    text('5', 0, 30)
-    loadPixels()
-    let pd = pixelDensity()
-    let offset
-    let max_x = 0
-    */
+     text('5', 0, 30)
+     loadPixels()
+     let pd = pixelDensity()
+     let offset
+     let max_x = 0
+     */
 
     /*  use the .get() equivalent for pixels[] found at
      *  https://p5js.org/reference/#/p5/get to find the text width
      */
     /*
-    for (let x = 0; x < width; x++) {
-        for (let y = 0; y < height; y++) {
-            offset = (y * width + x) * pd * 4
+     for (let x = 0; x < width; x++) {
+     for (let y = 0; y < height; y++) {
+     offset = (y * width + x) * pd * 4
 
-            if (pixels[offset] !== 0) {
-                max_x = Math.max(x, max_x)
-            }
-        }
-    }
+     if (pixels[offset] !== 0) {
+     max_x = Math.max(x, max_x)
+     }
+     }
+     }
 
-    print(max_x)
+     print(max_x)
 
-    */
-    print(charWidth('a'))
-    print(charWidth('1'))
-    print(charWidth('i'))
-    print(charWidth('m'))
-    print(charWidth('ρ'))
+     */
+    print(charWidth_get('a'))
+    print(charWidth_get('1'))
+    print(charWidth_get('i'))
+    print(charWidth_get('m'))
+    print(charWidth_get('ρ'))
 }
 
-/* return the width in pixels of char */
-function charWidth(char) {
+
+/*  return the width in pixels of char using the pixels array
+ */
+function charWidth_pixels(char) {
     let g = createGraphics(30, 50)
     g.colorMode(HSB, 360, 100, 100, 100)
     g.textFont(font, 30)
@@ -86,42 +88,69 @@ function charWidth(char) {
     let offset
     let max_x = 0
 
-    /*  use the .get() equivalent for pixels[] found at
-     *  https://p5js.org/reference/#/p5/get to find the text width
+    let redFail, greenFail, blueFail, alphaFail
+    /*  a pixel value "fails" if it's not [0, 0, 0, 255] which indicates
+     black. so if redFail is true, that means red is not 0. if alphaFail
+     is true, it means alpha is not 255.
      */
-    let c, redFail, greenFail, blueFail, alphaFail
+
+    /* iterate through every pixel in pixels[] array */
     for (let x = 0; x < g.width; x++) {
         for (let y = 0; y < g.height; y++) {
             offset = (y * g.width + x) * pd * 4
 
-            /*
-            c = g.get(x, y)
-            if (!(c[0]===0 && c[1]===0 && c[2]===0 && c[3]===255)) {
-                max_x = Math.max(x, max_x)
-            }
-            */
-
             // pixel values are rgba in the format [r, g, b, a]
-            redFail = (offset % 4 === 0 && g.pixels[offset] !==0)
-            greenFail = (offset % 4 === 1 && g.pixels[offset] !==0)
-            blueFail = (offset % 4 === 2 && g.pixels[offset] !==0)
-            alphaFail = (offset % 4 === 3 && g.pixels[offset] !==255)
+            redFail = (offset % 4 === 0 && g.pixels[offset] !== 0)
+            greenFail = (offset % 4 === 1 && g.pixels[offset] !== 0)
+            blueFail = (offset % 4 === 2 && g.pixels[offset] !== 0)
+            alphaFail = (offset % 4 === 3 && g.pixels[offset] !== 255)
 
             if (redFail || greenFail || blueFail || alphaFail) {
                 max_x = Math.max(x, max_x)
             }
-
-            /*
-            if (pixels[offset] !== 0) { // 🔧 because alpha=255 for black! D:
-                // FIXME skip alpha values, or mandate 0,1,2=0, 3=255 somehow?
-                max_x = Math.max(x, max_x)
-            }*/
         }
     }
 
-    image(g, width/2, height/2)
+    // image(g, width/2, height/2)
     return max_x
 }
+
+
+/*
+ return the width in pixels of char using get. this should be significantly
+ slower than using pixels[].
+ */
+function charWidth_get(char) {
+    let g = createGraphics(30, 50)
+    g.colorMode(HSB, 360, 100, 100, 100)
+    g.textFont(font, 30)
+
+    g.background(0, 0, 0)
+    g.fill(0, 0, 100)
+    g.text(char, 0, 33)
+
+    // still important despite using .get
+    g.loadPixels()
+
+    let max_x = 0
+
+    /*  use the .get() equivalent for pixels[] found at
+     *  https://p5js.org/reference/#/p5/get to find the text width
+     */
+    let c // color of pixel as a p5.color (represented as an 32-bit int!)
+    for (let x = 0; x < g.width; x++) {
+        for (let y = 0; y < g.height; y++) {
+            c = g.get(x, y)
+            if (!(c[0] === 0 && c[1] === 0 && c[2] === 0 && c[3] === 255)) {
+                max_x = Math.max(x, max_x)
+            }
+        }
+    }
+
+    image(g, width / 2, height / 2)
+    return max_x
+}
+
 
 function getPixel(x, y, pixelDensity) {
     loadPixels()
@@ -154,9 +183,9 @@ function archive() {
         for (let y = 0; y < height; y++) {
 
             // every pixel is represented as 4 values in pixels[]: rgba
-            let p = 4 * (x + y*width)
+            let p = 4 * (x + y * width)
 
-            if(pixels[p] > 0) {
+            if (pixels[p] > 0) {
                 debug = max_x
                 max_x = Math.max(x, max_x)
             }
@@ -168,7 +197,7 @@ function createGraphicsArchive() {
     let img = createGraphics(300, 300) // arbitrary sizes big enough for a char
     // img.background(0, 0, 0)
     img.fill(0, 0, 100)
-    img.text('i', 0, img.height/2)
+    img.text('i', 0, img.height / 2)
     img.loadPixels()
 
     let c // a color of a single pixel in our image
@@ -181,11 +210,11 @@ function createGraphicsArchive() {
             // set the appropriate nxn section of our result to the color of
             // that single pixel
             /*
-            for (let m=i*factor; m<i*factor+factor; m++)
-                for (let n=j*factor; n<j*factor+factor; n++)
-                    result.set(m, n, c)
+             for (let m=i*factor; m<i*factor+factor; m++)
+             for (let n=j*factor; n<j*factor+factor; n++)
+             result.set(m, n, c)
 
              */
         }
-    image(img, width/2, height/2)
+    image(img, width / 2, height / 2)
 }
