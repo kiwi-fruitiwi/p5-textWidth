@@ -46,6 +46,12 @@ function setup() {
             cursor.x += 10
         } else {
             charWidth = charWidth_pixels(c)
+
+            if (cursor.x + charWidth > width) {
+                cursor.y += 30
+                cursor.x = 0
+            }
+
             text(c, cursor.x, cursor.y)
             circle(cursor.x, cursor.y+4, 2)
 
@@ -58,9 +64,9 @@ function setup() {
         }
     }
 
-    print(charWidth_pixels('o'))
-    print(charWidth_pixels('m'))
-    print(charWidth_pixels('g'))
+    // print(charWidth_pixels('o'))
+    // print(charWidth_pixels('m'))
+    // print(charWidth_pixels('g'))
 }
 
 
@@ -118,7 +124,7 @@ function charWidth_pixels(char) {
         }
     }
 
-    image(g, width/2, height/2)
+    // image(g, width/2, height/2)
     return max_x
 }
 
