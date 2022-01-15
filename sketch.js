@@ -11,7 +11,7 @@
  ☒ measure each one's width by checking pixels in order
     ☐ check measurements across various font sizes, including consolas
  ☒ encapsulate functions: one using .get, one using pixels
- ☐ use charWidth to display words
+ ☒ use charWidth to display words
  ☐ now use charWidth to make textWidth. possible exception for gigamaru ' '
  ☐ convert to pGraphics object: off-screen buffer
  ☐ transfer to p5-dialogsystem
@@ -19,6 +19,15 @@
 
 let font
 let debug
+
+/**
+ * this can't be large because our charWidth graphics buffer is of finite
+ * size! note that we must also take into account our webpage scaling in
+ * chrome; I have it set at 125%, a significant bump up from default.
+ * @type {number}
+ */
+const FONT_SIZE = 18
+const LETTER_SPACING = 1
 
 function preload() {
     font = loadFont('data/giga.ttf')
@@ -29,19 +38,21 @@ function preload() {
 function setup() {
     createCanvas(640, 360)
     colorMode(HSB, 360, 100, 100, 100)
-    textFont(font, 18)
+    textFont(font, FONT_SIZE)
 
-    background(234, 34, 24)
     fill(0, 0, 100)
     noStroke()
 
+    background(234, 34, 24)
 
 // TODO use charWidth to display characters first
     let cursor = new p5.Vector(0, 100)
     let input = "I couldn't even get one pixel working because my generatePixel function didn't work. I need four nested loops to be able to complete my task because I don't know how to do this otherwise. It seems like I'm loading just fine."
 
+    let smallInput = "Corsair K100. I'm late to make Aerry lunch!"
+
     let charWidth = 0
-    for (let c of input) {
+    for (let c of smallInput) {
         if (c === ' ') {
             cursor.x += 10
         } else {
@@ -53,20 +64,14 @@ function setup() {
             }
 
             text(c, cursor.x, cursor.y)
-            circle(cursor.x, cursor.y+4, 2)
+            circle(cursor.x, cursor.y + 4, 2)
 
-            cursor.x += charWidth+2
+            cursor.x += charWidth + LETTER_SPACING
             line(cursor.x, 0, cursor.x, height)
-
-            // print(c)
-            print(charWidth)
-            // print(cursor.x)
         }
     }
 
-    // print(charWidth_pixels('o'))
-    // print(charWidth_pixels('m'))
-    // print(charWidth_pixels('g'))
+    console.log(wordWidth(smallInput))
 }
 
 
@@ -74,20 +79,32 @@ function draw() {
 }
 
 
-/*
-
-TODO Use charWidth to make textWidth
-
-
+/**
+ *
+ * TODO Use charWidth to make textWidth. no spaces at first
  */
+function wordWidth(word) {
+    let sum = 0
+    console.log([...word])
+
+    let decomp = [...word]
+    decomp.forEach(w => {
+        if (w === ' ')
+            sum += 10
+        else
+            sum += charWidth_pixels(w) + LETTER_SPACING
+    })
+
+    return sum
+}
 
 
 /*  return the width in pixels of char using the pixels array
  */
 function charWidth_pixels(char) {
-    let g = createGraphics(14, 100)
+    let g = createGraphics(100, 100)
     g.colorMode(HSB, 360, 100, 100, 100)
-    g.textFont(font, 18)
+    g.textFont(font, FONT_SIZE)
 
     g.background(0, 0, 0)
     g.fill(0, 0, 100)
@@ -136,7 +153,7 @@ function charWidth_pixels(char) {
 function charWidth_get(char) {
     let g = createGraphics(30, 50)
     g.colorMode(HSB, 360, 100, 100, 100)
-    g.textFont(font, 30)
+    g.textFont(font, FONT_SIZE)
 
     g.background(0, 0, 0)
     g.fill(0, 0, 100)
