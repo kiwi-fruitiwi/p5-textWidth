@@ -1,20 +1,24 @@
-//
-
-/*
- @author Kiwi
- @date 2022-01-10
-
- coding plan 🔧
- ☒ black background, white text
- ☒ write characters 'i' and 'm' on screen
- ☒ make things work with get()
- ☒ measure each one's width by checking pixels in order
-    ☐ check measurements across various font sizes, including consolas
- ☒ encapsulate functions: one using .get, one using pixels
- ☒ use charWidth to display words
- ☐ now use charWidth to make textWidth. possible exception for gigamaru ' '
- ☐ convert to pGraphics object: off-screen buffer
- ☐ transfer to p5-dialogsystem
+/**
+ * @author Kiwi
+ * @date 2022-01-10
+ *
+ * coding plan 🔧
+ * ☐ display black background, white text.
+ * ☐ write 'i' and 'm' on screen to compare their widths
+ *     ☐ check your chrome zoom settings. accurate results only at 100%
+ * ☐ measure each character's width by checking pixels in order
+ *     ☐ loadpixels in small canvas: 30x50 or so
+ *     ☐ iterate through every canvas pixel from left to right
+ *     ☐ keep track of the last non-black pixel you saw. that's the width!
+ *         ☐ how do you determine "non-black"? there are 4 values per pixel
+ * ☐ encapsulate functions
+ *     ☐ one using .get to retrieve color 'object'
+ *     ☐ the other using pixels[]
+ * ☐ convert to pGraphics object: off-screen buffer with createGraphics
+ * ☐ use charWidth to display single words
+ * ☐ now use charWidth to make textWidth. exception for gigamaru space char
+ * ☐ transfer into p5-dialogsystem!
+ *
  */
 
 let font
@@ -28,7 +32,7 @@ let debug
  */
 const FONT_SIZE = 18
 const LETTER_SPACING = 1.25
-const SPACE_WIDTH = FONT_SIZE/2
+const SPACE_WIDTH = FONT_SIZE / 2
 
 function preload() {
     font = loadFont('data/giga.ttf')
@@ -59,7 +63,7 @@ function setup() {
             charWidth = charWidth_pixels(c)
 
             if (cursor.x + charWidth > width) {
-                cursor.y += FONT_SIZE*1.5
+                cursor.y += FONT_SIZE * 1.5
                 cursor.x = 0
             }
 
@@ -115,7 +119,7 @@ function charWidth_pixels(char) {
      * account for textDescent, textAscent. x2 is inexact, but should be plenty.
      * @type {p5.Graphics}
      */
-    let g = createGraphics(FONT_SIZE, FONT_SIZE*1.5)
+    let g = createGraphics(FONT_SIZE, FONT_SIZE * 1.5)
     g.colorMode(HSB, 360, 100, 100, 100)
     g.textFont(font, FONT_SIZE)
 
@@ -128,7 +132,7 @@ function charWidth_pixels(char) {
      *  large paragraphs. A lowercase 'm' is about ⅓ the height of
      *  textAscent + textDescent.; a 'j' is ⅔.
      */
-    g.text(char, 0, g.height - FONT_SIZE/2)
+    g.text(char, 0, g.height - FONT_SIZE / 2)
 
     g.loadPixels()
 
@@ -213,11 +217,6 @@ function getPixel(x, y, pixelDensity) {
     ]
 }
 
-function debugLog(text) {
-    if (frameCount % 60 == 0)
-        console.log(text)
-}
-
 function mousePressed() {
     console.log(debug)
 }
@@ -237,30 +236,4 @@ function archive() {
             }
         }
     }
-}
-
-function createGraphicsArchive() {
-    let img = createGraphics(300, 300) // arbitrary sizes big enough for a char
-    // img.background(0, 0, 0)
-    img.fill(0, 0, 100)
-    img.text('i', 0, img.height / 2)
-    img.loadPixels()
-
-    let c // a color of a single pixel in our image
-
-    for (let i = 0; i < img.width; i++)
-        for (let j = 0; j < img.height; j++) {
-            // get the color of pixel at i.j
-            c = img.get(i, j)
-
-            // set the appropriate nxn section of our result to the color of
-            // that single pixel
-            /*
-             for (let m=i*factor; m<i*factor+factor; m++)
-             for (let n=j*factor; n<j*factor+factor; n++)
-             result.set(m, n, c)
-
-             */
-        }
-    image(img, width / 2, height / 2)
 }
