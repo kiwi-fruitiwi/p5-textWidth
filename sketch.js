@@ -27,7 +27,8 @@ let debug
  * @type {number}
  */
 const FONT_SIZE = 18
-const LETTER_SPACING = 1
+const LETTER_SPACING = 1.25
+const SPACE_WIDTH = FONT_SIZE/2
 
 function preload() {
     font = loadFont('data/giga.ttf')
@@ -48,30 +49,34 @@ function setup() {
 // TODO use charWidth to display characters first
     let cursor = new p5.Vector(0, 100)
     let input = "I couldn't even get one pixel working because my generatePixel function didn't work. I need four nested loops to be able to complete my task because I don't know how to do this otherwise. It seems like I'm loading just fine."
-
     let smallInput = "Corsair K100. I'm late to make Aerry lunch!"
 
     let charWidth = 0
-    for (let c of smallInput) {
+    for (let c of input) {
         if (c === ' ') {
-            cursor.x += 10
+            cursor.x += SPACE_WIDTH
         } else {
             charWidth = charWidth_pixels(c)
 
             if (cursor.x + charWidth > width) {
-                cursor.y += 30
+                cursor.y += FONT_SIZE*1.5
                 cursor.x = 0
             }
 
             text(c, cursor.x, cursor.y)
+
+            fill(0, 0, 100, 50)
             circle(cursor.x, cursor.y + 4, 2)
 
+            fill(0, 0, 100, 100)
             cursor.x += charWidth + LETTER_SPACING
             line(cursor.x, 0, cursor.x, height)
         }
     }
 
-    console.log(wordWidth(smallInput))
+    console.log(wordWidth(input))
+    console.log(charWidth_pixels('m'))
+    console.log(charWidth_pixels('i'))
 }
 
 
@@ -85,12 +90,12 @@ function draw() {
  */
 function wordWidth(word) {
     let sum = 0
-    console.log([...word])
 
-    let decomp = [...word]
-    decomp.forEach(w => {
+    console.log([...word]);
+
+    [...word].forEach(w => {
         if (w === ' ')
-            sum += 10
+            sum += SPACE_WIDTH
         else
             sum += charWidth_pixels(w) + LETTER_SPACING
     })
@@ -102,13 +107,28 @@ function wordWidth(word) {
 /*  return the width in pixels of char using the pixels array
  */
 function charWidth_pixels(char) {
-    let g = createGraphics(100, 100)
+    /**
+     * create a graphics buffer to display a character. then determine its
+     * width by iterating through every pixel. Noting that 'm' in size 18
+     * font is only 14 pixels, perhaps setting the buffer to a max width of
+     * FONT_SIZE is sufficient. The height needs to be a bit higher to
+     * account for textDescent, textAscent. x2 is inexact, but should be plenty.
+     * @type {p5.Graphics}
+     */
+    let g = createGraphics(FONT_SIZE, FONT_SIZE*1.5)
     g.colorMode(HSB, 360, 100, 100, 100)
     g.textFont(font, FONT_SIZE)
 
     g.background(0, 0, 0)
     g.fill(0, 0, 100)
-    g.text(char, 0, 15)
+
+    /**
+     *  the base height of g is g.height; this is an approximation of what
+     *  would fit most characters. utterly untested but seems okay with
+     *  large paragraphs. A lowercase 'm' is about ⅓ the height of
+     *  textAscent + textDescent.; a 'j' is ⅔.
+     */
+    g.text(char, 0, g.height - FONT_SIZE/2)
 
     g.loadPixels()
 
